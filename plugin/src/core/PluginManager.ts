@@ -1,20 +1,25 @@
 import { Plugin, WorkspaceLeaf, TFile } from 'obsidian';
 import { PARA } from './PARA';
-import { FileService } from '../services/FileService';
-import { PropertiesService } from '../services/PropertiesService';
-import { TagService } from '../services/TagService';
-import { TemplateService } from '../services/TemplateService';
-import { ProjectService } from '../services/ProjectService';
-import { AreasService } from '../services/AreasService';
-import { SearchService } from '../services/SearchService';
+import { ServiceContainer } from './ServiceContainer';
+import { ServiceFactory } from './ServiceFactory';
+import { registerServices } from './ServiceRegistration';
+import { SidebarView } from '../ui/SidebarView';
+import { CreateProjectModal, MoveToPARAModal } from '../ui/Modals';
+
+// Service interfaces
+import { IFileService } from '../interfaces/IFileService';
+import { IPropertiesService } from '../interfaces/IPropertiesService';
+import { ITagService } from '../interfaces/ITagService';
+import { ITemplateService } from '../interfaces/ITemplateService';
+import { IProjectService } from '../interfaces/IProjectService';
+import { IAreasService } from '../interfaces/IAreasService';
+import { ISearchService } from '../interfaces/ISearchService';
+import { IAIService } from '../interfaces/IAIService';
 import { IntegrationManager } from '../integrations/IntegrationManager';
 import { AIProviderManager } from '../integrations/AIProviderManager';
 import { PromptService } from '../integrations/PromptService';
-import { AIService } from '../services/AIService';
 import { SecretsManager } from '../integrations/SecretsManager';
 import { MCPServer } from '../mcp/MCPServer';
-import { SidebarView } from '../ui/SidebarView';
-import { CreateProjectModal, MoveToPARAModal } from '../ui/Modals';
 
 export interface PluginSettings {
 	organizationMode: 'folder' | 'property' | 'hybrid';
@@ -31,22 +36,24 @@ export class PluginManager {
 	plugin: Plugin;
 	para: PARA;
 	settings: PluginSettings;
+	private container: ServiceContainer;
+	private factory: ServiceFactory;
 
-	// Services
-	fileService: FileService;
-	propertiesService: PropertiesService;
-	tagService: TagService;
-	templateService: TemplateService;
-	projectService: ProjectService;
-	areasService: AreasService;
-	searchService: SearchService;
+	// Services (accessed via interfaces)
+	fileService: IFileService;
+	propertiesService: IPropertiesService;
+	tagService: ITagService;
+	templateService: ITemplateService;
+	projectService: IProjectService;
+	areasService: IAreasService;
+	searchService: ISearchService;
 
 	// Integrations
 	integrationManager: IntegrationManager;
 	secretsManager: SecretsManager;
 	aiProviderManager: AIProviderManager;
 	promptService: PromptService;
-	aiService: AIService;
+	aiService: IAIService;
 	mcpServer: MCPServer;
 
 	constructor(plugin: Plugin, para: PARA) {
@@ -54,25 +61,29 @@ export class PluginManager {
 		this.para = para;
 		this.settings = this.getDefaultSettings();
 
-		// Initialize core services
-		this.fileService = new FileService(plugin.app);
-		this.propertiesService = new PropertiesService(plugin.app);
-		this.tagService = new TagService(plugin.app);
-		this.templateService = new TemplateService(plugin.app);
-		this.projectService = new ProjectService(plugin.app, this.settings.maxActiveProjects);
-		this.areasService = new AreasService(plugin.app, this.settings.maxActiveProjects);
-		this.searchService = new SearchService(plugin.app);
+		// Create DI container and factory
+		this.container = new ServiceContainer();
+		this.factory = new ServiceFactory(this.container, plugin.app, this.settings);
 
-		// Initialize integrations
-		this.secretsManager = new SecretsManager(plugin.app);
-		this.integrationManager = new IntegrationManager();
-		this.aiProviderManager = new AIProviderManager(plugin.app, this.integrationManager, this.secretsManager);
-		this.promptService = new PromptService(plugin.app);
-		this.aiService = new AIService(plugin.app, this.aiProviderManager, this.promptService);
+		// Register all services
+		registerServices(this.container, plugin.app, para, this.settings);
 
-		// Initialize MCP server
-		this.mcpServer = new MCPServer(plugin.app);
-		this.mcpServer.setOrganizationMode(this.settings.organizationMode);
+		// Resolve services from container
+		this.propertiesService = this.container.resolve<IPropertiesService>('IPropertiesService');
+		this.tagService = this.container.resolve<ITagService>('ITagService');
+		this.fileService = this.container.resolve<IFileService>('IFileService');
+		this.templateService = this.container.resolve<ITemplateService>('ITemplateService');
+		this.searchService = this.container.resolve<ISearchService>('ISearchService');
+		this.projectService = this.container.resolve<IProjectService>('IProjectService');
+		this.areasService = this.container.resolve<IAreasService>('IAreasService');
+
+		// Resolve integrations
+		this.secretsManager = this.container.resolve<SecretsManager>('SecretsManager');
+		this.integrationManager = this.container.resolve<IntegrationManager>('IntegrationManager');
+		this.aiProviderManager = this.container.resolve<AIProviderManager>('AIProviderManager');
+		this.promptService = this.container.resolve<PromptService>('PromptService');
+		this.aiService = this.container.resolve<IAIService>('IAIService');
+		this.mcpServer = this.container.resolve<MCPServer>('MCPServer');
 	}
 
 	private getDefaultSettings(): PluginSettings {
@@ -92,10 +103,17 @@ export class PluginManager {
 		const loadedData = await this.plugin.loadData();
 		this.settings = { ...this.getDefaultSettings(), ...loadedData };
 		
-		// Update services with new settings
-		this.projectService = new ProjectService(this.plugin.app, this.settings.maxActiveProjects);
-		this.areasService = new AreasService(this.plugin.app, this.settings.maxActiveProjects);
-		this.mcpServer.setOrganizationMode(this.settings.organizationMode);
+		// Update factory with new settings
+		this.factory.updateSettings(this.settings);
+		
+		// Re-register services that depend on settings
+		this.container.clear();
+		registerServices(this.container, this.plugin.app, this.para, this.settings);
+		
+		// Re-resolve services that may have changed
+		this.projectService = this.container.resolve<IProjectService>('IProjectService');
+		this.areasService = this.container.resolve<IAreasService>('IAreasService');
+		this.mcpServer = this.container.resolve<MCPServer>('MCPServer');
 		
 		// Initialize AI providers
 		await this.aiProviderManager.initialize();

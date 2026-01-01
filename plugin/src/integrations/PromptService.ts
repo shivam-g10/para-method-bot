@@ -1,5 +1,5 @@
 import { App, TFile } from 'obsidian';
-import { FileService } from '../services/FileService';
+import { IFileService } from '../interfaces/IFileService';
 
 export interface PromptContext {
 	vaultContent?: string[];
@@ -12,11 +12,11 @@ export interface PromptContext {
  */
 export class PromptService {
 	private app: App;
-	private fileService: FileService;
+	private fileService: IFileService;
 
-	constructor(app: App) {
+	constructor(app: App, fileService: IFileService) {
 		this.app = app;
-		this.fileService = new FileService(app);
+		this.fileService = fileService;
 	}
 
 	/**

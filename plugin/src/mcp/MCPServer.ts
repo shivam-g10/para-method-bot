@@ -2,8 +2,9 @@ import { App } from 'obsidian';
 import { FileSearchTool } from './FileSearchTool';
 import { VaultContextTool } from './VaultContextTool';
 import { GetFileContentTool } from './GetFileContentTool';
-import { SearchService } from '../services/SearchService';
-import { FileService, OrganizationMode } from '../services/FileService';
+import { OrganizationMode } from '../services/FileService';
+import { ISearchService } from '../interfaces/ISearchService';
+import { IFileService } from '../interfaces/IFileService';
 
 export interface MCPTool {
 	name: string;
@@ -23,14 +24,14 @@ export interface MCPTool {
 export class MCPServer {
 	private app: App;
 	private tools: Map<string, MCPTool> = new Map();
-	private searchService: SearchService;
-	private fileService: FileService;
+	private searchService: ISearchService;
+	private fileService: IFileService;
 	private mode: OrganizationMode = 'hybrid';
 
-	constructor(app: App) {
+	constructor(app: App, searchService: ISearchService, fileService: IFileService) {
 		this.app = app;
-		this.searchService = new SearchService(app);
-		this.fileService = new FileService(app);
+		this.searchService = searchService;
+		this.fileService = fileService;
 
 		// Register tools
 		this.registerTool(new FileSearchTool(this));
@@ -124,14 +125,14 @@ export class MCPServer {
 	/**
 	 * Get search service
 	 */
-	getSearchService(): SearchService {
+	getSearchService(): ISearchService {
 		return this.searchService;
 	}
 
 	/**
 	 * Get file service
 	 */
-	getFileService(): FileService {
+	getFileService(): IFileService {
 		return this.fileService;
 	}
 

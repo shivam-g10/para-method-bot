@@ -1,13 +1,29 @@
-// Test setup file
-// This file runs before all tests
+import { ServiceContainer } from '../../src/core/ServiceContainer';
+import { MockFileService } from './mocks/MockFileService';
+import { MockPropertiesService } from './mocks/MockPropertiesService';
+import { MockTagService } from './mocks/MockTagService';
 
-// Mock console methods to reduce noise in tests
-global.console = {
-	...console,
-	log: jest.fn(),
-	debug: jest.fn(),
-	info: jest.fn(),
-	warn: jest.fn(),
-	error: jest.fn(),
-};
+/**
+ * Test setup with DI container and mock services
+ */
+export function setupTestContainer(): ServiceContainer {
+	const container = new ServiceContainer();
 
+	// Register mock services
+	container.register('IFileService', {
+		implementation: MockFileService,
+		lifecycle: 'singleton',
+	});
+
+	container.register('IPropertiesService', {
+		implementation: MockPropertiesService,
+		lifecycle: 'singleton',
+	});
+
+	container.register('ITagService', {
+		implementation: MockTagService,
+		lifecycle: 'singleton',
+	});
+
+	return container;
+}

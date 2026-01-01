@@ -225,11 +225,31 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - [Obsidian](https://obsidian.md/) for the amazing platform
 - All contributors and users of this plugin
 
+## 🏗️ Architecture
+
+The plugin uses an **abstraction layer architecture** with dependency injection, enabling:
+
+- **Swappable Implementations**: Easy to swap services (e.g., different file storage, AI providers)
+- **Testability**: Mock interfaces for isolated testing
+- **Flexibility**: Add new implementations without changing business logic
+- **Extensibility**: Plugin-style architecture for custom implementations
+
+### Key Components
+
+- **Service Interfaces**: All services abstracted behind interfaces
+- **Dependency Injection**: ServiceContainer manages service lifecycle
+- **Strategy Pattern**: Organization modes (folder, property, hybrid) as swappable strategies
+- **Integration System**: Extensible integration framework for AI providers and external services
+
+See [Architecture Documentation](docs/ARCHITECTURE.md) for detailed information.
+
 ## 📚 Documentation
 
 - [Overall Plan](Overall_plan.md) - Complete project plan and architecture
-- [API Documentation](docs/API.md) - API reference (coming soon)
-- [User Guide](docs/UserGuide.md) - Detailed usage instructions (coming soon)
+- [Architecture Documentation](docs/ARCHITECTURE.md) - System architecture and design patterns
+- [API Documentation](docs/API.md) - Complete API reference
+- [Developer Guide](docs/DEVELOPER_GUIDE.md) - Guide for extending and customizing
+- [Migration Guide](docs/MIGRATION_GUIDE.md) - Guide for migrating to new architecture
 - [Contributing Guide](CONTRIBUTING.md) - How to contribute
 
 ## 🐛 Issues & Support

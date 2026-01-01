@@ -1,9 +1,11 @@
 import { App, TFile } from 'obsidian';
+import { OrganizationMode } from './FileService';
+import { IAIService } from '../interfaces/IAIService';
 import { AIProviderManager } from '../integrations/AIProviderManager';
 import { PromptService } from '../integrations/PromptService';
-import { FileService, OrganizationMode } from './FileService';
-import { ProjectService } from './ProjectService';
-import { SearchService } from './SearchService';
+import { IFileService } from '../interfaces/IFileService';
+import { IProjectService } from '../interfaces/IProjectService';
+import { ISearchService } from '../interfaces/ISearchService';
 
 export interface ExtractionResult {
 	summary: string;
@@ -23,25 +25,28 @@ export interface Insight {
 	relatedFiles: string[];
 }
 
-export class AIService {
+export class AIService implements IAIService {
 	private app: App;
 	private aiProviderManager: AIProviderManager;
 	private promptService: PromptService;
-	private fileService: FileService;
-	private projectService: ProjectService;
-	private searchService: SearchService;
+	private fileService: IFileService;
+	private projectService: IProjectService;
+	private searchService: ISearchService;
 
 	constructor(
 		app: App,
 		aiProviderManager: AIProviderManager,
-		promptService: PromptService
+		promptService: PromptService,
+		fileService: IFileService,
+		projectService: IProjectService,
+		searchService: ISearchService
 	) {
 		this.app = app;
 		this.aiProviderManager = aiProviderManager;
 		this.promptService = promptService;
-		this.fileService = new FileService(app);
-		this.projectService = new ProjectService(app);
-		this.searchService = new SearchService(app);
+		this.fileService = fileService;
+		this.projectService = projectService;
+		this.searchService = searchService;
 	}
 
 	/**

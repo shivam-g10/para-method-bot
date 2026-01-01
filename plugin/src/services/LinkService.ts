@@ -1,6 +1,8 @@
 import { App, TFile } from 'obsidian';
 import { PARAType } from '../core/PARA';
-import { FileService, OrganizationMode } from './FileService';
+import { OrganizationMode } from './FileService';
+import { ILinkService } from '../interfaces/ILinkService';
+import { IFileService } from '../interfaces/IFileService';
 
 export interface LinkInfo {
 	source: TFile;
@@ -8,13 +10,13 @@ export interface LinkInfo {
 	type: 'bidirectional' | 'unidirectional';
 }
 
-export class LinkService {
+export class LinkService implements ILinkService {
 	private app: App;
-	private fileService: FileService;
+	private fileService: IFileService;
 
-	constructor(app: App) {
+	constructor(app: App, fileService: IFileService) {
 		this.app = app;
-		this.fileService = new FileService(app);
+		this.fileService = fileService;
 	}
 
 	/**
@@ -128,6 +130,15 @@ export class LinkService {
 		}
 
 		return brokenLinks;
+	}
+
+	/**
+	 * Suggest links based on content
+	 */
+	async suggestLinks(file: TFile): Promise<LinkInfo[]> {
+		// TODO: Implement link suggestion logic
+		// For now, return empty array
+		return [];
 	}
 
 	/**

@@ -133,13 +133,36 @@ Enhancement suggestions are tracked as GitHub Discussions. When suggesting an en
 ### File Organization
 
 - Place new files in **appropriate directories**:
-  - `src/core/` - Core PARA functionality
-  - `src/services/` - Business logic services
+  - `src/core/` - Core PARA functionality, DI container
+  - `src/interfaces/` - Service interfaces
+  - `src/services/` - Business logic services (implement interfaces)
+  - `src/strategies/` - Organization strategy implementations
   - `src/integrations/` - AI provider integrations
   - `src/mcp/` - MCP server components
   - `src/ui/` - UI components
   - `src/utils/` - Utility functions
 - Follow **existing naming conventions**
+
+### Working with Interfaces
+
+- **All services must implement interfaces**: Services should implement their corresponding interface (e.g., FileService implements IFileService)
+- **Use interfaces in dependencies**: When a service depends on another service, use the interface type
+- **Register services in DI container**: New services must be registered in `ServiceRegistration.ts`
+- **Document interface contracts**: Add JSDoc comments to interface methods
+
+### Dependency Injection
+
+- **Use DI container for service resolution**: Don't instantiate services directly, use `container.resolve<T>()`
+- **Register dependencies**: When creating a service, register its dependencies in the container
+- **Lifecycle management**: Use appropriate lifecycle (singleton, transient, scoped) for services
+- **Factory functions**: Use factory functions for services with complex initialization
+
+### Testing with Mocks
+
+- **Create mock implementations**: Mock services should implement the same interface as real services
+- **Use DI container in tests**: Register mock services in test setup
+- **Test interface contracts**: Ensure mocks implement all interface methods
+- **Isolated testing**: Use mocks to test services in isolation
 
 ### Commit Messages
 
@@ -222,6 +245,9 @@ describe('FileService', () => {
 - Add **JSDoc comments** for new public APIs
 - Update **inline code comments** for complex logic
 - Keep **CHANGELOG.md** updated (if applicable)
+- Update **docs/ARCHITECTURE.md** for architectural changes
+- Update **docs/API.md** for API changes
+- Update **docs/DEVELOPER_GUIDE.md** for new extension points
 
 ## Review Process
 

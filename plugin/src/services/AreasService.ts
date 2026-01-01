@@ -1,10 +1,12 @@
 import { App, TFile } from 'obsidian';
 import { PARA, PARAType, AreaStatus } from '../core/PARA';
-import { FileService, OrganizationMode } from './FileService';
-import { PropertiesService } from './PropertiesService';
-import { TagService } from './TagService';
-import { TemplateService } from './TemplateService';
-import { ProjectService } from './ProjectService';
+import { OrganizationMode } from './FileService';
+import { IAreasService } from '../interfaces/IAreasService';
+import { IFileService } from '../interfaces/IFileService';
+import { IPropertiesService } from '../interfaces/IPropertiesService';
+import { ITagService } from '../interfaces/ITagService';
+import { ITemplateService } from '../interfaces/ITemplateService';
+import { IProjectService } from '../interfaces/IProjectService';
 
 export interface AreaMetadata {
 	name: string;
@@ -16,23 +18,31 @@ export interface AreaMetadata {
 	projects?: string[];
 }
 
-export class AreasService {
+export class AreasService implements IAreasService {
 	private app: App;
 	private para: PARA;
-	private fileService: FileService;
-	private propertiesService: PropertiesService;
-	private tagService: TagService;
-	private templateService: TemplateService;
-	private projectService: ProjectService;
+	private fileService: IFileService;
+	private propertiesService: IPropertiesService;
+	private tagService: ITagService;
+	private templateService: ITemplateService;
+	private projectService: IProjectService;
 
-	constructor(app: App, maxActiveProjects: number = 3) {
+	constructor(
+		app: App,
+		para: PARA,
+		fileService: IFileService,
+		propertiesService: IPropertiesService,
+		tagService: ITagService,
+		templateService: ITemplateService,
+		projectService: IProjectService
+	) {
 		this.app = app;
-		this.para = new PARA(app);
-		this.fileService = new FileService(app);
-		this.propertiesService = new PropertiesService(app);
-		this.tagService = new TagService(app);
-		this.templateService = new TemplateService(app);
-		this.projectService = new ProjectService(app, maxActiveProjects);
+		this.para = para;
+		this.fileService = fileService;
+		this.propertiesService = propertiesService;
+		this.tagService = tagService;
+		this.templateService = templateService;
+		this.projectService = projectService;
 	}
 
 	/**
@@ -176,6 +186,13 @@ export class AreasService {
 	 */
 	async getLinkedProjects(areaFile: TFile, mode: OrganizationMode): Promise<TFile[]> {
 		return await this.projectService.getProjectsByArea(areaFile.basename, mode);
+	}
+
+	/**
+	 * Get all areas
+	 */
+	async getAreas(mode: OrganizationMode): Promise<TFile[]> {
+		return await this.fileService.getFilesByPARAType('area', mode);
 	}
 
 	/**

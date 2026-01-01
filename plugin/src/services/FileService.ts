@@ -1,19 +1,30 @@
 import { App, TFile, TFolder } from 'obsidian';
 import { PARA, PARAType } from '../core/PARA';
-import { PropertiesService } from './PropertiesService';
-import { TagService } from './TagService';
+import { IFileService } from '../interfaces/IFileService';
+import { IPropertiesService } from '../interfaces/IPropertiesService';
+import { ITagService } from '../interfaces/ITagService';
+import { Result, ok, err, toResult } from '../utils/Result';
+import { Option, some, none, fromNullable } from '../utils/Option';
+import { FileOperationError } from '../utils/errors';
 
 export type OrganizationMode = 'folder' | 'property' | 'hybrid';
 
-export class FileService {
+export class FileService implements IFileService {
 	private app: App;
 	private para: PARA;
-	private propertiesService: PropertiesService;
+	private propertiesService: IPropertiesService;
+	private tagService: ITagService;
 
-	constructor(app: App) {
+	constructor(
+		app: App,
+		para: PARA,
+		propertiesService: IPropertiesService,
+		tagService: ITagService
+	) {
 		this.app = app;
-		this.para = new PARA(app);
-		this.propertiesService = new PropertiesService(app);
+		this.para = para;
+		this.propertiesService = propertiesService;
+		this.tagService = tagService;
 	}
 
 	/**
@@ -24,6 +35,22 @@ export class FileService {
 	}
 
 	/**
+	 * Read file content (Result pattern)
+	 */
+	async readFileSafe(file: TFile): Promise<Result<string, FileOperationError>> {
+		return toResult(
+			this.app.vault.read(file).catch(error => {
+				throw new FileOperationError(
+					`Failed to read file: ${file.path}`,
+					'read',
+					file.path,
+					{ error: error instanceof Error ? error.message : String(error) }
+				);
+			})
+		);
+	}
+
+	/**
 	 * Write content to file
 	 */
 	async writeFile(file: TFile, content: string): Promise<void> {
@@ -31,10 +58,42 @@ export class FileService {
 	}
 
 	/**
+	 * Write content to file (Result pattern)
+	 */
+	async writeFileSafe(file: TFile, content: string): Promise<Result<void, FileOperationError>> {
+		return toResult(
+			this.app.vault.modify(file, content).catch(error => {
+				throw new FileOperationError(
+					`Failed to write file: ${file.path}`,
+					'write',
+					file.path,
+					{ error: error instanceof Error ? error.message : String(error) }
+				);
+			})
+		);
+	}
+
+	/**
 	 * Create a new file
 	 */
 	async createFile(path: string, content: string): Promise<TFile> {
 		return await this.app.vault.create(path, content);
+	}
+
+	/**
+	 * Create a new file (Result pattern)
+	 */
+	async createFileSafe(path: string, content: string): Promise<Result<TFile, FileOperationError>> {
+		return toResult(
+			this.app.vault.create(path, content).catch(error => {
+				throw new FileOperationError(
+					`Failed to create file: ${path}`,
+					'create',
+					path,
+					{ error: error instanceof Error ? error.message : String(error) }
+				);
+			})
+		);
 	}
 
 	/**
@@ -134,6 +193,18 @@ export class FileService {
 	}
 
 	/**
+	 * Auto-detect PARA category from file (Option pattern)
+	 */
+	async detectPARATypeSafe(
+		file: TFile,
+		mode: OrganizationMode,
+		customFolders?: Record<PARAType, string>
+	): Promise<Option<PARAType>> {
+		const result = await this.detectPARAType(file, mode, customFolders);
+		return fromNullable(result);
+	}
+
+	/**
 	 * Organize file to PARA category based on mode
 	 */
 	async organizeToPARA(
@@ -153,8 +224,7 @@ export class FileService {
 		}
 
 		// Also update tags
-		const tagService = new TagService(this.app);
-		await tagService.addPARATag(file, type);
+		await this.tagService.addPARATag(file, type);
 	}
 
 	/**

@@ -1,10 +1,15 @@
 import { App, TFile } from 'obsidian';
 import { PARA, PARAType, ProjectStatus } from '../core/PARA';
-import { FileService, OrganizationMode } from './FileService';
-import { PropertiesService, PARAProperties } from './PropertiesService';
-import { TagService } from './TagService';
-import { TemplateService } from './TemplateService';
+import { OrganizationMode } from './FileService';
+import { IProjectService } from '../interfaces/IProjectService';
+import { IFileService } from '../interfaces/IFileService';
+import { IPropertiesService } from '../interfaces/IPropertiesService';
+import { ITagService } from '../interfaces/ITagService';
+import { ITemplateService } from '../interfaces/ITemplateService';
 import { formatDate, parseDate } from '../utils/helpers';
+import { Result, ok, err } from '../utils/Result';
+import { ProjectLimitError, ValidationError } from '../utils/errors';
+import { required, minLength, combine } from '../utils/validators';
 
 export interface ProjectMetadata {
 	name: string;
@@ -20,22 +25,30 @@ export interface ProjectMetadata {
 	tasks?: string[];
 }
 
-export class ProjectService {
+export class ProjectService implements IProjectService {
 	private app: App;
 	private para: PARA;
-	private fileService: FileService;
-	private propertiesService: PropertiesService;
-	private tagService: TagService;
-	private templateService: TemplateService;
+	private fileService: IFileService;
+	private propertiesService: IPropertiesService;
+	private tagService: ITagService;
+	private templateService: ITemplateService;
 	private maxActiveProjects: number;
 
-	constructor(app: App, maxActiveProjects: number = 3) {
+	constructor(
+		app: App,
+		para: PARA,
+		fileService: IFileService,
+		propertiesService: IPropertiesService,
+		tagService: ITagService,
+		templateService: ITemplateService,
+		maxActiveProjects: number = 3
+	) {
 		this.app = app;
-		this.para = new PARA(app);
-		this.fileService = new FileService(app);
-		this.propertiesService = new PropertiesService(app);
-		this.tagService = new TagService(app);
-		this.templateService = new TemplateService(app);
+		this.para = para;
+		this.fileService = fileService;
+		this.propertiesService = propertiesService;
+		this.tagService = tagService;
+		this.templateService = templateService;
 		this.maxActiveProjects = maxActiveProjects;
 	}
 
@@ -74,9 +87,18 @@ export class ProjectService {
 	): Promise<TFile> {
 		// Check project limit
 		if (await this.isProjectLimitReached(mode)) {
-			throw new Error(
-				`Maximum ${this.maxActiveProjects} active projects allowed. Please archive or complete a project first.`
-			);
+			const activeProjects = await this.getActiveProjects(mode);
+			throw new ProjectLimitError(activeProjects.length, this.maxActiveProjects);
+		}
+
+		// Validate project name
+		const nameValidator = combine(
+			required('Project name is required'),
+			minLength(1, 'Project name cannot be empty')
+		);
+		const validation = nameValidator(name);
+		if (!validation.success) {
+			throw validation.error;
 		}
 
 		// Get template
@@ -246,6 +268,69 @@ export class ProjectService {
 		}
 
 		return filtered;
+	}
+
+	/**
+	 * Enforce project limit when creating new projects
+	 */
+	async enforceProjectLimit(mode: OrganizationMode): Promise<void> {
+		if (await this.isProjectLimitReached(mode)) {
+			const activeProjects = await this.getActiveProjects(mode);
+			throw new ProjectLimitError(activeProjects.length, this.maxActiveProjects);
+		}
+	}
+
+	/**
+	 * Enforce project limit (Result pattern)
+	 */
+	async enforceProjectLimitSafe(mode: OrganizationMode): Promise<Result<void, ProjectLimitError>> {
+		if (await this.isProjectLimitReached(mode)) {
+			const activeProjects = await this.getActiveProjects(mode);
+			return err(new ProjectLimitError(activeProjects.length, this.maxActiveProjects));
+		}
+		return ok(undefined);
+	}
+
+	/**
+	 * Create a new project note (Result pattern)
+	 */
+	async createProjectSafe(
+		name: string,
+		mode: OrganizationMode,
+		customFolders?: Record<PARAType, string>
+	): Promise<Result<TFile, ProjectLimitError | ValidationError>> {
+		// Validate project name
+		const nameValidator = combine(
+			required('Project name is required'),
+			minLength(1, 'Project name cannot be empty')
+		);
+		const validation = nameValidator(name);
+		if (!validation.success) {
+			return err(validation.error);
+		}
+
+		// Check project limit
+		const limitCheck = await this.enforceProjectLimitSafe(mode);
+		if (!limitCheck.success) {
+			return limitCheck;
+		}
+
+		try {
+			const file = await this.createProject(name, mode, customFolders);
+			return ok(file);
+		} catch (error) {
+			if (error instanceof ProjectLimitError) {
+				return err(error);
+			}
+			if (error instanceof ValidationError) {
+				return err(error);
+			}
+			// Wrap unexpected errors
+			return err(new ValidationError(
+				error instanceof Error ? error.message : 'Failed to create project',
+				'name'
+			));
+		}
 	}
 }
 

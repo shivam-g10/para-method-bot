@@ -59,21 +59,28 @@ export class FileSearchTool implements MCPTool {
 		// Perform search
 		const files = await this.server.getSearchService().search(filters, mode);
 
-		// Format results
-		const { PropertiesService } = await import('../services/PropertiesService');
-		const results = await Promise.all(
-			files.map(async (file: TFile) => {
-				const propertiesService = new PropertiesService(this.server.getApp());
-				const paraType = await propertiesService.getPARAType(file);
+		// Format results - use searchService to get properties if available
+		// For now, we'll get PARA type from file path or return undefined
+		const results = files.map((file: TFile) => {
+			// Try to detect PARA type from path
+			let paraType: PARAType | undefined;
+			if (file.path.includes('project') || file.path.includes('1-Projects')) {
+				paraType = 'project';
+			} else if (file.path.includes('area') || file.path.includes('2-Areas')) {
+				paraType = 'area';
+			} else if (file.path.includes('resource') || file.path.includes('3-Resources')) {
+				paraType = 'resource';
+			} else if (file.path.includes('archive') || file.path.includes('4-Archives')) {
+				paraType = 'archive';
+			}
 
-				return {
-					path: file.path,
-					name: file.name,
-					basename: file.basename,
-					paraType: paraType || undefined,
-				};
-			})
-		);
+			return {
+				path: file.path,
+				name: file.name,
+				basename: file.basename,
+				paraType,
+			};
+		});
 
 		return { files: results };
 	}

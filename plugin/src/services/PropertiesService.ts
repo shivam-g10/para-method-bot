@@ -1,5 +1,7 @@
 import { App, TFile } from 'obsidian';
 import { PARAType, ProjectStatus, AreaStatus } from '../core/PARA';
+import { IPropertiesService } from '../interfaces/IPropertiesService';
+import { Option, fromNullable } from '../utils/Option';
 
 export interface PARAProperties {
 	'para-type'?: PARAType;
@@ -9,7 +11,7 @@ export interface PARAProperties {
 	'area-of-improvement'?: string;
 }
 
-export class PropertiesService {
+export class PropertiesService implements IPropertiesService {
 	private app: App;
 
 	constructor(app: App) {
@@ -73,6 +75,14 @@ export class PropertiesService {
 	async getPARAType(file: TFile): Promise<PARAType | null> {
 		const properties = await this.getProperties(file);
 		return properties['para-type'] || null;
+	}
+
+	/**
+	 * Get PARA type from properties (Option pattern)
+	 */
+	async getPARATypeSafe(file: TFile): Promise<Option<PARAType>> {
+		const result = await this.getPARAType(file);
+		return fromNullable(result);
 	}
 
 	/**

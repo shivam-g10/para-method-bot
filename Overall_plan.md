@@ -8,13 +8,35 @@ This document outlines the complete plan for building a testable Obsidian plugin
 
 The plugin will be built as a TypeScript-based Obsidian plugin with a testable, modular architecture supporting multiple UI interaction points, MCP integration, and extensible integration system.
 
+### Abstraction Layer Architecture
+
+The plugin uses an **abstraction layer** with dependency injection to enable swappable implementations:
+
+- **Service Interfaces**: All services abstracted behind interfaces (IFileService, IPropertiesService, etc.)
+- **Dependency Injection Container**: ServiceContainer manages service lifecycle and dependency resolution
+- **Service Factory**: ServiceFactory creates services with proper dependencies
+- **Strategy Pattern**: Organization modes implemented as swappable strategies
+- **Integration Abstraction**: BaseIntegration and IAIProvider for extensible integrations
+
+This architecture enables:
+- Easy swapping of implementations (e.g., different file storage, AI providers)
+- Mock implementations for testing
+- Plugin-style extensibility
+- Clear contracts between components
+
+See [Architecture Documentation](docs/ARCHITECTURE.md) for detailed information.
+
 ```mermaid
 graph TB
     subgraph obsidian [Obsidian App]
         subgraph plugin [PARA Agent Plugin]
             Core[Core Plugin Manager]
             PARA[PARA Manager]
+            DIContainer[DI Container]
+            ServiceFactory[Service Factory]
+            Interfaces[Service Interfaces]
             Services[Service Layer]
+            Strategies[Organization Strategies]
             Integrations[Integration Manager]
             SecretsMgr[Secrets Manager]
             Security[Security Layer]
@@ -34,7 +56,11 @@ graph TB
         OtherIntegrations[Other Integrations]
     end
     
-    Core --> Services
+    Core --> DIContainer
+    DIContainer --> ServiceFactory
+    ServiceFactory --> Interfaces
+    Interfaces --> Services
+    Services --> Strategies
     Core --> Integrations
     Core --> SecretsMgr
     Integrations --> Security
@@ -61,7 +87,20 @@ second-brain-agent/
 │   │   ├── main.ts           # Plugin entry point
 │   │   ├── core/
 │   │   │   ├── PARA.ts       # PARA method logic
-│   │   │   └── PluginManager.ts
+│   │   │   ├── PluginManager.ts
+│   │   │   ├── ServiceContainer.ts  # DI container
+│   │   │   ├── ServiceFactory.ts    # Service factory
+│   │   │   └── ServiceRegistration.ts  # Service registration
+│   │   ├── interfaces/       # Service interfaces
+│   │   │   ├── IFileService.ts
+│   │   │   ├── IPropertiesService.ts
+│   │   │   └── ... (all service interfaces)
+│   │   ├── strategies/       # Organization strategies
+│   │   │   ├── IOrganizationStrategy.ts
+│   │   │   ├── FolderOrganizationStrategy.ts
+│   │   │   ├── PropertyOrganizationStrategy.ts
+│   │   │   ├── HybridOrganizationStrategy.ts
+│   │   │   └── OrganizationStrategyFactory.ts
 │   │   ├── services/
 │   │   │   ├── FileService.ts
 │   │   │   ├── TagService.ts

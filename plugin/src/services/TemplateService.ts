@@ -1,14 +1,19 @@
 import { App, TFile } from 'obsidian';
+import { ITemplateService } from '../interfaces/ITemplateService';
 
 export interface TemplateVariables {
 	[name: string]: string | number | Date;
 }
 
-export class TemplateService {
+export class TemplateService implements ITemplateService {
 	private app: App;
+	private templates: Map<string, string> = new Map();
 
 	constructor(app: App) {
 		this.app = app;
+		// Initialize default templates
+		this.templates.set('project-plan', this.getProjectPlanTemplate());
+		this.templates.set('plan-of-action', this.getPlanOfActionTemplate());
 	}
 
 	/**
@@ -132,6 +137,27 @@ export class TemplateService {
 			month: new Date().getMonth() + 1,
 			day: new Date().getDate(),
 		};
+	}
+
+	/**
+	 * Get template by name
+	 */
+	getTemplate(name: string): string | null {
+		return this.templates.get(name) || null;
+	}
+
+	/**
+	 * Render template with variables
+	 */
+	renderTemplate(template: string, variables: TemplateVariables): string {
+		return this.replaceVariables(template, variables);
+	}
+
+	/**
+	 * List all available templates
+	 */
+	listTemplates(): string[] {
+		return Array.from(this.templates.keys());
 	}
 }
 

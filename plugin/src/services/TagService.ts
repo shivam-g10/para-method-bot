@@ -1,11 +1,23 @@
 import { App, TFile } from 'obsidian';
 import { PARAType } from '../core/PARA';
+import { ITagService } from '../interfaces/ITagService';
 
-export class TagService {
+export class TagService implements ITagService {
 	private app: App;
 
 	constructor(app: App) {
 		this.app = app;
+	}
+
+	/**
+	 * Suggest tags based on content (AI-powered)
+	 * @param file - File to suggest tags for
+	 * @returns Promise resolving to array of suggested tag strings
+	 */
+	async suggestTags(file: TFile): Promise<string[]> {
+		// TODO: Implement AI-powered tag suggestions
+		// For now, return empty array
+		return [];
 	}
 
 	/**

@@ -119,13 +119,24 @@ export class AIProviderManager {
 			throw new Error(`Provider ${providerName} not found`);
 		}
 
-		// Cast to AI provider interface
-		const aiProvider = provider as any;
+		// Check if provider implements IAIProvider interface
+		const aiProvider = provider as import('../interfaces/IAIProvider').IAIProvider;
 		if (typeof aiProvider.generate !== 'function') {
 			throw new Error(`Provider ${providerName} does not support AI generation`);
 		}
 
 		return await aiProvider.generate(request);
+	}
+
+	/**
+	 * Register a new AI provider dynamically
+	 * @param provider - AI provider integration
+	 */
+	async registerProvider(provider: import('../interfaces/IAIProvider').IAIProvider): Promise<void> {
+		this.integrationManager.register(provider);
+		if (provider.isEnabled()) {
+			await provider.initialize();
+		}
 	}
 
 	/**

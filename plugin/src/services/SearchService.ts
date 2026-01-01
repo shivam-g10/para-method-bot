@@ -1,8 +1,10 @@
 import { App, TFile } from 'obsidian';
 import { PARAType, ProjectStatus, AreaStatus } from '../core/PARA';
-import { FileService, OrganizationMode } from './FileService';
-import { PropertiesService } from './PropertiesService';
-import { TagService } from './TagService';
+import { OrganizationMode } from './FileService';
+import { ISearchService } from '../interfaces/ISearchService';
+import { IFileService } from '../interfaces/IFileService';
+import { IPropertiesService } from '../interfaces/IPropertiesService';
+import { ITagService } from '../interfaces/ITagService';
 
 export interface SearchFilters {
 	paraType?: PARAType;
@@ -11,17 +13,22 @@ export interface SearchFilters {
 	query?: string;
 }
 
-export class SearchService {
+export class SearchService implements ISearchService {
 	private app: App;
-	private fileService: FileService;
-	private propertiesService: PropertiesService;
-	private tagService: TagService;
+	private fileService: IFileService;
+	private propertiesService: IPropertiesService;
+	private tagService: ITagService;
 
-	constructor(app: App) {
+	constructor(
+		app: App,
+		fileService: IFileService,
+		propertiesService: IPropertiesService,
+		tagService: ITagService
+	) {
 		this.app = app;
-		this.fileService = new FileService(app);
-		this.propertiesService = new PropertiesService(app);
-		this.tagService = new TagService(app);
+		this.fileService = fileService;
+		this.propertiesService = propertiesService;
+		this.tagService = tagService;
 	}
 
 	/**
@@ -107,7 +114,7 @@ export class SearchService {
 	/**
 	 * Filter files by tags
 	 */
-	private async filterByTags(files: TFile[], tags: string[]): Promise<TFile[]> {
+	async filterByTags(files: TFile[], tags: string[]): Promise<TFile[]> {
 		const filtered: TFile[] = [];
 
 		for (const file of files) {
@@ -145,6 +152,20 @@ export class SearchService {
 			}
 		}
 
+		return filtered;
+	}
+
+	/**
+	 * Filter by PARA category
+	 */
+	async filterByPARA(files: TFile[], type: PARAType): Promise<TFile[]> {
+		const filtered: TFile[] = [];
+		for (const file of files) {
+			const fileType = await this.propertiesService.getPARAType(file);
+			if (fileType === type) {
+				filtered.push(file);
+			}
+		}
 		return filtered;
 	}
 

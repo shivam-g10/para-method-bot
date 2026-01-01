@@ -1,13 +1,27 @@
 import { FileService } from '../../../src/services/FileService';
+import { PARA } from '../../../src/core/PARA';
 import { MockApp, MockVault } from '../../mocks/ObsidianMocks';
+import { MockPropertiesService } from '../../mocks/MockPropertiesService';
+import { MockTagService } from '../../mocks/MockTagService';
 
 describe('FileService', () => {
 	let fileService: FileService;
 	let mockApp: MockApp;
+	let para: PARA;
+	let propertiesService: MockPropertiesService;
+	let tagService: MockTagService;
 
 	beforeEach(() => {
 		mockApp = new MockApp();
-		fileService = new FileService(mockApp as any);
+		para = new PARA(mockApp as any);
+		propertiesService = new MockPropertiesService();
+		tagService = new MockTagService();
+		fileService = new FileService(
+			mockApp as any,
+			para,
+			propertiesService,
+			tagService
+		);
 	});
 
 	describe('fileExists', () => {
