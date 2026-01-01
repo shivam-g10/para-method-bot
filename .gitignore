@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build output
+plugin/main.js
+plugin/main.js.map
+plugin/styles.css
+plugin/styles.css.map
+
+# Obsidian
+.obsidian/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+*.log
+
+# Secrets
+*.encrypted
+secrets.json
+
+# Temporary files
+*.tmp
+*.temp
+

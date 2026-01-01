@@ -3,6 +3,12 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![Obsidian](https://img.shields.io/badge/Obsidian-Plugin-green.svg)](https://obsidian.md/)
+[![GitHub stars](https://img.shields.io/github/stars/shivam-g10/para-method-bot.svg?style=social&label=Star)](https://github.com/shivam-g10/para-method-bot)
+[![GitHub forks](https://img.shields.io/github/forks/shivam-g10/para-method-bot.svg?style=social&label=Fork)](https://github.com/shivam-g10/para-method-bot/fork)
+[![GitHub issues](https://img.shields.io/github/issues/shivam-g10/para-method-bot.svg)](https://github.com/shivam-g10/para-method-bot/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/shivam-g10/para-method-bot.svg)](https://github.com/shivam-g10/para-method-bot/pulls)
+[![GitHub release](https://img.shields.io/github/v/release/shivam-g10/para-method-bot.svg)](https://github.com/shivam-g10/para-method-bot/releases)
+[![Maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/shivam-g10/para-method-bot/graphs/commit-activity)
 
 An intelligent Obsidian plugin that automates and manages your PARA method-based second brain personal knowledge base system with AI-powered features, secure secrets management, and multiple integration support.
 
@@ -57,7 +63,7 @@ An intelligent Obsidian plugin that automates and manages your PARA method-based
 
 ### Manual Installation
 
-1. Download the latest release from [Releases](https://github.com/yourusername/second-brain-agent/releases)
+1. Download the latest release from [Releases](https://github.com/shivam-g10/para-method-bot/releases)
 2. Extract the plugin folder to your vault's `.obsidian/plugins/` directory
 3. Reload Obsidian
 4. Enable the plugin in Settings > Community Plugins
@@ -128,25 +134,25 @@ Choose your organization method:
 ### Prerequisites
 
 - Node.js 18+
-- npm or yarn
+- pnpm
 - Git
 
 ### Setup
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/second-brain-agent.git
-cd second-brain-agent
+git clone https://github.com/shivam-g10/para-method-bot.git
+cd para-method-bot
 
 # Install dependencies
-npm install
+pnpm install
 
 # Build the plugin
 cd plugin
-npm run build
+pnpm run build
 
 # Run tests
-npm test
+pnpm test
 ```
 
 ### Project Structure
@@ -162,32 +168,32 @@ second-brain-agent/
 
 ```bash
 # Run all tests
-npm test
+pnpm test
 
 # Run unit tests
-npm run test:unit
+pnpm run test:unit
 
 # Run integration tests
-npm run test:integration
+pnpm run test:integration
 
 # Run E2E tests
-npm run test:e2e
+pnpm run test:e2e
 
 # Check coverage
-npm run test:coverage
+pnpm run test:coverage
 ```
 
 ### Building
 
 ```bash
 # Development build
-npm run build
+pnpm run build
 
 # Production build
-npm run build:prod
+pnpm run build:prod
 
 # Watch mode
-npm run dev
+pnpm run dev
 ```
 
 ## 🔒 Security
@@ -228,9 +234,9 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🐛 Issues & Support
 
-- **Bug Reports**: [GitHub Issues](https://github.com/yourusername/second-brain-agent/issues)
-- **Feature Requests**: [GitHub Discussions](https://github.com/yourusername/second-brain-agent/discussions)
-- **Questions**: [GitHub Discussions Q&A](https://github.com/yourusername/second-brain-agent/discussions/categories/q-a)
+- **Bug Reports**: [GitHub Issues](https://github.com/shivam-g10/para-method-bot/issues)
+- **Feature Requests**: [GitHub Discussions](https://github.com/shivam-g10/para-method-bot/discussions)
+- **Questions**: [GitHub Discussions Q&A](https://github.com/shivam-g10/para-method-bot/discussions/categories/q-a)
 
 ## 🗺️ Roadmap
 
@@ -247,7 +253,7 @@ See [Overall Plan](Overall_plan.md) for detailed roadmap.
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=yourusername/second-brain-agent&type=Date)](https://star-history.com/#yourusername/second-brain-agent&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=shivam-g10/para-method-bot&type=Date)](https://star-history.com/#shivam-g10/para-method-bot&Date)
 
 ---
 

@@ -1,0 +1,23 @@
+{
+	"name": "second-brain-agent",
+	"version": "0.1.0",
+	"description": "PARA Method Obsidian Agent - Root package",
+	"private": true,
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/shivam-g10/para-method-bot.git"
+	},
+	"bugs": {
+		"url": "https://github.com/shivam-g10/para-method-bot/issues"
+	},
+	"homepage": "https://github.com/shivam-g10/para-method-bot#readme",
+	"scripts": {
+		"build": "cd plugin && npm run build",
+		"test": "cd plugin && npm test",
+		"dev": "cd plugin && npm run dev"
+	},
+	"workspaces": [
+		"plugin"
+	]
+}
+
